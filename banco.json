@@ -1,0 +1,68 @@
+{
+  "produtos": [
+    {
+      "id": 1,
+      "nome": "Fone Bluetooth Aura",
+      "categoria": "Áudio",
+      "preco": 249.9,
+      "estoque": 14,
+      "imagem": "https://placehold.co/600x400/2c3e50/ffffff?text=Fone+Aura"
+    },
+    {
+      "id": 2,
+      "nome": "Teclado Mecânico K70",
+      "categoria": "Periféricos",
+      "preco": 389.0,
+      "estoque": 7,
+      "imagem": "https://placehold.co/600x400/34495e/ffffff?text=Teclado+K70"
+    },
+    {
+      "id": 3,
+      "nome": "Mouse Gamer Titan",
+      "categoria": "Periféricos",
+      "preco": 159.5,
+      "estoque": 23,
+      "imagem": "https://placehold.co/600x400/16a085/ffffff?text=Mouse+Titan"
+    },
+    {
+      "id": 4,
+      "nome": "Monitor 27\" QHD",
+      "categoria": "Monitores",
+      "preco": 1799.99,
+      "estoque": 4,
+      "imagem": "https://placehold.co/600x400/8e44ad/ffffff?text=Monitor+27"
+    },
+    {
+      "id": 5,
+      "nome": "Webcam Full HD",
+      "categoria": "Vídeo",
+      "preco": 219.0,
+      "estoque": 0,
+      "imagem": "https://placehold.co/600x400/c0392b/ffffff?text=Webcam+HD"
+    },
+    {
+      "id": 6,
+      "nome": "SSD NVMe 1TB",
+      "categoria": "Armazenamento",
+      "preco": 479.9,
+      "estoque": 31,
+      "imagem": "https://placehold.co/600x400/2980b9/ffffff?text=SSD+1TB"
+    },
+    {
+      "id": 7,
+      "nome": "Cadeira Ergonômica Flex",
+      "categoria": "Móveis",
+      "preco": 1249.0,
+      "estoque": 9,
+      "imagem": "https://placehold.co/600x400/d35400/ffffff?text=Cadeira+Flex"
+    },
+    {
+      "id": 8,
+      "nome": "Hub USB-C 7 em 1",
+      "categoria": "Acessórios",
+      "preco": 189.9,
+      "estoque": 18,
+      "imagem": "https://placehold.co/600x400/27ae60/ffffff?text=Hub+USB-C"
+    }
+  ]
+}
