@@ -1,254 +1,1513 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Produtos</title>
-  <style>
-    :root {
-      --fundo: #f4f6f9;
-      --texto: #333;
-      --suave: #777;
-      --verde: #27ae60;
-      --vermelho: #c0392b;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestão de Pedidos e Conferência de NF-e · CFTV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- jsPDF & AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<!-- PDF.js for client-side PDF parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 
-    * { box-sizing: border-box; }
+<style>
+  :root{
+    --paper:#FFFFFF;
+    --paper-dark:#F8F9FA;
+    --ink:#1F1F1F;
+    --ink-soft:#6C757D;
+    --line:#D9D9D9;
+    --stamp:#D60000;
+    --stamp-dark:#A80000;
+    --check:#28A745;
+    --check-bg:#E8F5E9;
+    --warning:#E67E22;
+    --warning-bg:#FDF2E9;
+    --danger:#DC3545;
+    --danger-bg:#FDEDEC;
+    --white:#FFFFFF;
+    --rec:#E60000;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#F2F2F2;
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--ink);
+    padding:20px 12px 60px;
+  }
+  .sheet{
+    max-width:850px;
+    margin:0 auto;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+  }
+  .sheet::before{
+    content:"● REC / SYS";
+    position:absolute;
+    top:16px; right:20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--rec);
+    font-weight:600;
+  }
+  .head{
+    padding:28px 32px 18px;
+    border-bottom:2px dashed var(--line);
+    background: #FAFAFA;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:32px;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: var(--fundo);
-      color: var(--texto);
-      margin: 0;
-      padding: 20px;
-    }
+  /* Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    background: #EAEAEA;
+    padding: 6px 6px 0 6px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .tab-btn {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    background: #E0E0E0;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab-btn.active {
+    background: var(--paper);
+    color: var(--stamp);
+    border-color: var(--ink);
+    border-bottom: 2px solid var(--paper);
+    margin-bottom: -2px;
+    font-weight: 600;
+  }
+  .tab-btn:hover:not(.active) {
+    background: #D8D8D8;
+    color: var(--ink);
+  }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 4px;
-    }
+  .tab-content {
+    display: none;
+    padding: 26px 32px 32px;
+  }
+  .tab-content.active {
+    display: block;
+  }
 
-    .barra {
-      max-width: 1000px;
-      margin: 20px auto 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
+  .section-label{
+    font-family:'Oswald', sans-serif;
+    font-size:16px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink);
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
 
-    .barra input,
-    .barra select {
-      padding: 10px 12px;
-      border: 1px solid #d5dae1;
-      border-radius: 6px;
-      font-size: 14px;
-      background: #fff;
-      min-width: 200px;
-    }
+  /* Form Elements */
+  .meta-row{
+    display:grid;
+    grid-template-columns:2fr 1fr 1.2fr;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    font-family:'IBM Plex Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    font-weight: 600;
+  }
+  input, select, textarea{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding:9px 10px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--stamp);
+    box-shadow: 0 0 0 2px rgba(214,0,0,0.1);
+  }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      max-width: 1000px;
-      margin: 20px auto;
-    }
+  .add-form{
+    display:grid;
+    grid-template-columns:2.5fr 1fr 1fr;
+    gap:10px;
+    margin-bottom:10px;
+    background: #F8F9FA;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .add-form .full{grid-column:1 / -1;}
 
-    .card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      text-align: center;
-    }
+  .add-btn{
+    margin-top:10px;
+    width:100%;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:4px;
+    padding:11px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .add-btn:hover{background:#323A3F;}
 
-    .card img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 4px;
-      background: #eceff3;
-    }
+  /* Tables */
+  table.list{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:18px;
+  }
+  table.list th{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    text-align:left;
+    padding:8px;
+    border-bottom:2px solid var(--ink);
+    background: #F4F4F4;
+  }
+  table.list td{
+    padding:10px 8px;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+    vertical-align:middle;
+  }
+  table.list tr:hover td{background:rgba(0,0,0,0.02);}
+  .qty-cell{font-family:'IBM Plex Mono', monospace; white-space:nowrap; font-weight:600;}
+  .empty-row td{
+    text-align:center;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:24px 8px;
+  }
+  
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--stamp);
+    cursor:pointer;
+    font-size:18px;
+    line-height:1;
+    padding:2px 6px;
+  }
+  .del-btn:hover{color:var(--stamp-dark);}
+  .edit-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    font-size:15px;
+    line-height:1;
+    padding:2px 6px;
+  }
+  .edit-btn:hover{color:var(--ink);}
 
-    .card h3 {
-      margin: 12px 0 4px;
-      font-size: 16px;
-    }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .badge-ok { background: var(--check-bg); color: var(--check); border: 1px solid var(--check); }
+  .badge-warn { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
 
-    .categoria {
-      display: inline-block;
-      background-color: #e0e0e0;
-      color: #555;
-      font-size: 12px;
-      padding: 3px 8px;
-      border-radius: 12px;
-      margin-top: 4px;
-    }
+  /* Upload Box */
+  .upload-box {
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    background: #FAFAFA;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .upload-box:hover, .upload-box.dragover {
+    border-color: var(--stamp);
+    background: #FFF5F5;
+  }
+  .upload-icon {
+    font-size: 32px;
+    color: var(--stamp);
+    margin-bottom: 8px;
+  }
 
-    .preco {
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--verde);
-      margin: 10px 0;
-    }
+  .footer-bar{
+    display:flex;
+    gap:12px;
+    margin-top:28px;
+    align-items:center;
+  }
+  .item-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  
+  .primary-btn {
+    background: var(--stamp);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    padding: 14px 20px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+  .primary-btn:hover { background: var(--stamp-dark); }
+  .primary-btn:disabled { background: #AAA; cursor: not-allowed; }
 
-    .estoque { font-size: 12px; color: var(--suave); }
-    .estoque.esgotado { color: var(--vermelho); font-weight: bold; }
+  .secondary-btn {
+    background: #333;
+    color: #FFF;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .secondary-btn:hover { background: #000; }
 
-    #aviso {
-      max-width: 1000px;
-      margin: 20px auto;
-      text-align: center;
-      color: var(--suave);
-    }
+  /* Stat cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: #F8F9FA;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-card .val {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .stat-card .lbl {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
 
-    #aviso.erro {
-      color: var(--vermelho);
-      background: #fdecea;
-      border: 1px solid #f5c6c0;
-      border-radius: 8px;
-      padding: 14px;
-      text-align: left;
-    }
-
-    #aviso code {
-      background: rgba(0,0,0,.06);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-  </style>
+  @media (max-width:650px){
+    .meta-row, .add-form{grid-template-columns:1fr;}
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    h1{font-size:24px;}
+    .sheet { border-radius: 0; }
+  }
+</style>
 </head>
 <body>
 
-  <h1>Catálogo de Produtos</h1>
-
-  <div class="barra">
-    <input type="search" id="busca" placeholder="Buscar produto..." aria-label="Buscar produto">
-    <select id="filtro-categoria" aria-label="Filtrar por categoria">
-      <option value="">Todas as categorias</option>
-    </select>
+<div class="sheet">
+  <div class="head">
+    <p class="eyebrow">Módulo de Gestão de Suprimentos · CFTV & Segurança</p>
+    <h1>Banco de Pedidos & Conferência de NF-e</h1>
   </div>
 
-  <div id="aviso">Carregando produtos...</div>
-  <div id="produtos-container" class="grid"></div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-novo')">1. Criar Pedido</button>
+    <button class="tab-btn" onclick="switchTab('tab-banco')">2. Banco de Pedidos</button>
+    <button class="tab-btn" onclick="switchTab('tab-nfe')">3. Conferir NF-e (PDF)</button>
+  </div>
 
-  <script>
-    const container = document.getElementById('produtos-container');
-    const aviso = document.getElementById('aviso');
-    const busca = document.getElementById('busca');
-    const filtroCategoria = document.getElementById('filtro-categoria');
+  <!-- TAB 1: CRIAR PEDIDO -->
+  <div id="tab-novo" class="tab-content active">
+    <p class="section-label">Identificação da Requisição</p>
+    <div class="meta-row">
+      <div class="field">
+        <label>Nome do Pedido / Destino</label>
+        <input id="ped-nome" type="text" placeholder="Ex: MATERIAL GPAPARNAMIRIM - CFTV">
+      </div>
+      <div class="field">
+        <label>Nº do Pedido / Cód.</label>
+        <input id="ped-codigo" type="text" placeholder="Ex: PED-2026-001">
+      </div>
+      <div class="field">
+        <label>Data da Solicit.</label>
+        <input id="ped-data" type="date">
+      </div>
+    </div>
 
-    let produtos = [];
+    <p class="section-label" id="formLabel">Adicionar Item Solicitado</p>
+    <div class="add-form">
+      <div class="full">
+        <input id="desc" type="text" placeholder="Descrição completa do material (ex: Câmera Bullet 2MP Hikvision)">
+      </div>
+      <div class="field">
+        <label>Quantidade</label>
+        <input id="qtd" type="number" min="0.01" step="0.5" placeholder="Qtd">
+      </div>
+      <div class="field">
+        <label>Unidade</label>
+        <select id="unid">
+          <option value="un">un (Unidade)</option>
+          <option value="pc">pc (Peça)</option>
+          <option value="m">m (Metro cabo)</option>
+          <option value="rolo">rolo (Rolo)</option>
+          <option value="par">par (Par)</option>
+          <option value="cx">cx (Caixa)</option>
+          <option value="kit">kit (Kit)</option>
+          <option value="jogo">jogo (Jogo)</option>
+        </select>
+      </div>
+      <div class="full">
+        <input id="obs" type="text" placeholder="Observação / Especificação (ex: Lente 2.8mm, cor branca, modelo Vandal-Proof)">
+      </div>
+    </div>
 
-    function formatarPreco(valor) {
-      return Number(valor).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      });
-    }
+    <button class="add-btn" id="addBtn" onclick="addItem()">+ Adicionar Item ao Pedido</button>
 
-    function escapar(texto) {
-      return String(texto ?? '').replace(/[&<>"']/g, c => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[c]));
-    }
+    <table class="list">
+      <thead>
+        <tr>
+          <th style="width:30px;">#</th>
+          <th>Descrição do Item</th>
+          <th style="width:80px;">Qtd</th>
+          <th style="width:70px;">Unid</th>
+          <th>Observação</th>
+          <th style="width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody-pedido">
+        <tr class="empty-row"><td colspan="6">Nenhum item adicionado a esta requisição.</td></tr>
+      </tbody>
+    </table>
 
-    function montarCard(produto) {
-      const card = document.createElement('div');
-      card.className = 'card';
+    <div class="footer-bar">
+      <span class="item-count" id="count-items">0 itens</span>
+      <button class="primary-btn" style="flex:1;" onclick="salvarPedidoNoBanco()">💾 Salvar Pedido no Banco de Dados</button>
+      <button class="secondary-btn" onclick="gerarPDFPedidoOriginal()">📄 Baixar PDF do Pedido</button>
+    </div>
+  </div>
 
-      const esgotado = Number(produto.estoque) <= 0;
-      const imagem = produto.imagem || 'https://placehold.co/600x400?text=Sem+imagem';
+  <!-- TAB 2: BANCO DE DADOS DE PEDIDOS -->
+  <div id="tab-banco" class="tab-content">
+    <p class="section-label">Pedidos Solicitados Registrados</p>
 
-      card.innerHTML = `
-        <img src="${escapar(imagem)}" alt="${escapar(produto.nome)}" loading="lazy">
-        <h3>${escapar(produto.nome)}</h3>
-        <span class="categoria">${escapar(produto.categoria)}</span>
-        <div class="preco">${formatarPreco(produto.preco)}</div>
-        <div class="estoque ${esgotado ? 'esgotado' : ''}">
-          ${esgotado ? 'Esgotado' : 'Estoque: ' + produto.estoque + ' un.'}
+    <div class="footer-bar" style="margin-top:0; margin-bottom:8px; flex-wrap:wrap;">
+      <button class="secondary-btn" onclick="exportarBancoJSON()">⬇ Exportar banco.json</button>
+      <button class="secondary-btn" onclick="document.getElementById('input-banco-json').click()">⬆ Importar banco.json</button>
+      <button class="secondary-btn" onclick="carregarArquivoBanco(true)">🔄 Recarregar do banco.json</button>
+      <input type="file" id="input-banco-json" accept="application/json" style="display:none;" onchange="importarBancoJSON(this.files[0])">
+    </div>
+    <p class="item-count" id="status-banco" style="margin:0 0 14px;">Lendo banco.json...</p>
+
+    <table class="list">
+      <thead>
+        <tr>
+          <th>Cód / Data</th>
+          <th>Nome do Pedido</th>
+          <th>Itens</th>
+          <th>Status Conferência</th>
+          <th style="width:160px;">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-banco">
+        <tr class="empty-row"><td colspan="5">Nenhum pedido salvo no banco de dados local.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TAB 3: CONFERÊNCIA DE NOTA FISCAL (PDF) -->
+  <div id="tab-nfe" class="tab-content">
+    <p class="section-label">1. Selecione o Pedido Solicitado para Comparar</p>
+    <div style="margin-bottom:20px;">
+      <label style="font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600;">SELECIONE O PEDIDO DO BANCO DE DADOS:</label>
+      <select id="select-pedido-conferencia" onchange="carregarPedidoParaConferencia()" style="margin-top:6px; font-weight:600; font-size:15px; color:var(--stamp);">
+        <option value="">-- Escolha um pedido salvo --</option>
+      </select>
+    </div>
+
+    <div id="area-conferencia" style="display:none;">
+      <p class="section-label">2. Importar Nota Fiscal (PDF ou Leitura Automática)</p>
+      
+      <div class="upload-box" id="drop-zone" onclick="document.getElementById('nfe-file-input').click()">
+        <div class="upload-icon">📄</div>
+        <div style="font-weight:600; font-size:15px; margin-bottom:4px;">Clique ou arraste o PDF da Nota Fiscal (DANFE) aqui</div>
+        <div style="font-size:12px; color:var(--ink-soft);">O sistema extrai os itens, quantidades e descrições do arquivo da NF-e para cruzamento de dados</div>
+        <div style="font-size:12px; color:var(--stamp); font-weight:600; margin-top:6px;" id="nome-arquivo-nf"></div>
+        <input type="file" id="nfe-file-input" accept="application/pdf" style="display:none;" onchange="processarPDFNotaFiscal(this.files[0])">
+      </div>
+
+      <p class="section-label">3. Resultado da Comparação (Solicitado vs Entregue)</p>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="val" id="stat-solicitados" style="color:var(--ink);">0</div>
+          <div class="lbl">Itens Solicitados</div>
         </div>
-      `;
-      return card;
+        <div class="stat-card">
+          <div class="val" id="stat-completos" style="color:var(--check);">0</div>
+          <div class="lbl">Entregues 100%</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="stat-faltantes" style="color:var(--danger);">0</div>
+          <div class="lbl">Itens c/ Faltas</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="stat-extras" style="color:var(--warning);">0</div>
+          <div class="lbl">Não Solicitados</div>
+        </div>
+      </div>
+
+      <table class="list" id="tabela-comparativo">
+        <thead>
+          <tr>
+            <th>Descrição do Item</th>
+            <th style="width:70px;">Qtd Ped.</th>
+            <th style="width:70px;">Qtd NF</th>
+            <th style="width:70px;">Falta</th>
+            <th style="width:110px;">Status</th>
+            <th style="width:30px;"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-comparativo">
+          <tr class="empty-row"><td colspan="6">Carregue um arquivo PDF de Nota Fiscal acima para efetuar a conferência.</td></tr>
+        </tbody>
+      </table>
+
+      <p class="section-label">4. Itens Lidos na Nota Fiscal (vínculo automático por similaridade)</p>
+      <p class="item-count" id="count-itens-nf" style="margin:-6px 0 10px;">0 itens lidos da NF</p>
+
+      <table class="list" style="margin-top:0;">
+        <thead>
+          <tr>
+            <th>Descrição no arquivo da NF</th>
+            <th style="width:90px;">Qtd NF</th>
+            <th style="width:230px;">Vinculado ao item do pedido</th>
+            <th style="width:70px;">Confiança</th>
+            <th style="width:30px;"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-itens-nf">
+          <tr class="empty-row"><td colspan="5">Nenhum item lido da NF ainda.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="add-form" style="margin-top:16px; grid-template-columns:2.5fr 1fr auto;">
+        <div class="field">
+          <label>Lançar item da NF manualmente</label>
+          <input id="nf-desc-manual" type="text" placeholder="Descrição como está na nota">
+        </div>
+        <div class="field">
+          <label>Qtd na NF</label>
+          <input id="nf-qtd-manual" type="number" min="0" step="0.5" placeholder="0">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="secondary-btn" style="padding:10px 14px;" onclick="adicionarItemNFManual()">+ Lançar</button>
+        </div>
+      </div>
+
+      <div class="footer-bar">
+        <button class="primary-btn" style="width:100%;" id="btn-relatorio-pdf" onclick="gerarRelatorioPDFDivergencia()" disabled>
+          🚨 Gerar Relatório PDF de Material Faltante / Divergências
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =====================================================================
+// SISTEMA DE PEDIDOS E CONFERÊNCIA DE NF-e
+// Comparação 100% determinística (regras fixas, sem IA / sem internet)
+// =====================================================================
+
+const STORAGE_KEY = 'cftv_banco_pedidos';
+const ARQUIVO_BANCO = './banco.json';
+
+let dbPedidos = [];
+let currentPedidoItems = [];
+let editIndex = null;
+let activePedidoConferencia = null;
+
+// itens lidos do PDF da NF: {idNF, codigo, desc, unid, qtd, vinculo, score}
+let nfItens = [];
+// sobrescritas manuais de quantidade: { reqItemId: numero }
+let ajustesManuais = {};
+
+// ---------------------------------------------------------------------
+// BOOT: carrega localStorage e, se existir, o arquivo banco.json
+// ---------------------------------------------------------------------
+try {
+  dbPedidos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+} catch (e) {
+  dbPedidos = [];
+}
+
+document.getElementById('ped-data').valueAsDate = new Date();
+
+async function carregarArquivoBanco(avisar) {
+  try {
+    const r = await fetch(ARQUIVO_BANCO, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const dados = await r.json();
+    const lista = Array.isArray(dados) ? dados : dados.pedidos;
+    if (!Array.isArray(lista)) throw new Error('O arquivo precisa ter uma lista "pedidos".');
+
+    let novos = 0;
+    lista.forEach(p => {
+      const jaExiste = dbPedidos.some(x => x.id === p.id || x.codigo === p.codigo);
+      if (!jaExiste) {
+        dbPedidos.push(normalizarPedido(p));
+        novos++;
+      }
+    });
+    salvarBanco();
+    renderBancoPedidos();
+    setStatusBanco(`banco.json lido · ${novos} pedido(s) importado(s) · ${dbPedidos.length} no total`);
+    if (avisar) alert(`banco.json carregado. ${novos} pedido(s) novo(s) importado(s).`);
+  } catch (err) {
+    console.warn('banco.json não carregado:', err.message);
+    if (location.protocol === 'file:') {
+      setStatusBanco('banco.json não lido: abra a página por um servidor (GitHub Pages ou "python -m http.server"). Os dados locais continuam funcionando.');
+    } else {
+      setStatusBanco('banco.json não encontrado nesta pasta. Trabalhando apenas com os dados salvos no navegador.');
+    }
+    if (avisar) alert('Não foi possível ler o banco.json: ' + err.message);
+  }
+}
+
+function normalizarPedido(p) {
+  return {
+    id: p.id || 'PED_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    nome: p.nome || 'SEM NOME',
+    codigo: p.codigo || 'SEM-COD',
+    data: p.data || '',
+    items: (p.items || p.itens || []).map(it => ({
+      id: String(it.id || 'IT_' + Math.random().toString(36).slice(2, 10)),
+      desc: it.desc || it.descricao || '',
+      qtd: parseFloat(it.qtd) || 0,
+      unid: it.unid || it.unidade || 'un',
+      obs: it.obs || it.observacao || ''
+    })),
+    statusConferencia: p.statusConferencia || 'Pendente',
+    dataCriacao: p.dataCriacao || new Date().toISOString()
+  };
+}
+
+function setStatusBanco(txt) {
+  const el = document.getElementById('status-banco');
+  if (el) el.textContent = txt;
+}
+
+function salvarBanco() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dbPedidos));
+}
+
+// ---------------------------------------------------------------------
+// EXPORTAR / IMPORTAR banco.json
+// ---------------------------------------------------------------------
+function exportarBancoJSON() {
+  if (dbPedidos.length === 0) {
+    alert('Não há pedidos para exportar.');
+    return;
+  }
+  const conteudo = JSON.stringify({ pedidos: dbPedidos }, null, 2);
+  const blob = new Blob([conteudo], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'banco.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importarBancoJSON(file) {
+  if (!file) return;
+  try {
+    const texto = await file.text();
+    const dados = JSON.parse(texto);
+    const lista = Array.isArray(dados) ? dados : dados.pedidos;
+    if (!Array.isArray(lista)) throw new Error('Estrutura inválida: falta a lista "pedidos".');
+
+    let novos = 0;
+    lista.forEach(p => {
+      if (!dbPedidos.some(x => x.id === p.id || x.codigo === p.codigo)) {
+        dbPedidos.push(normalizarPedido(p));
+        novos++;
+      }
+    });
+    salvarBanco();
+    renderBancoPedidos();
+    alert(`${novos} pedido(s) importado(s) do arquivo.`);
+  } catch (err) {
+    alert('Arquivo inválido: ' + err.message);
+  }
+}
+
+// ---------------------------------------------------------------------
+// ABAS
+// ---------------------------------------------------------------------
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+
+  const activeBtn = Array.from(document.querySelectorAll('.tab-btn'))
+    .find(b => (b.getAttribute('onclick') || '').includes(tabId));
+  if (activeBtn) activeBtn.classList.add('active');
+
+  if (tabId === 'tab-banco') renderBancoPedidos();
+  if (tabId === 'tab-nfe') atualizarSelectPedidosConferencia();
+}
+
+// ---------------------------------------------------------------------
+// ABA 1 — CRIAR PEDIDO
+// ---------------------------------------------------------------------
+function addItem() {
+  const desc = document.getElementById('desc').value.trim();
+  const qtd = parseFloat(document.getElementById('qtd').value);
+  const unid = document.getElementById('unid').value;
+  const obs = document.getElementById('obs').value.trim();
+
+  if (!desc || isNaN(qtd) || qtd <= 0) {
+    alert('Preencha ao menos a descrição e uma quantidade válida.');
+    return;
+  }
+
+  if (editIndex !== null) {
+    currentPedidoItems[editIndex] = { ...currentPedidoItems[editIndex], desc, qtd, unid, obs };
+    editIndex = null;
+    document.getElementById('addBtn').textContent = '+ Adicionar Item ao Pedido';
+    document.getElementById('formLabel').textContent = 'Adicionar Item Solicitado';
+  } else {
+    currentPedidoItems.push({
+      id: 'IT_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      desc, qtd, unid, obs
+    });
+  }
+
+  document.getElementById('desc').value = '';
+  document.getElementById('qtd').value = '';
+  document.getElementById('obs').value = '';
+  document.getElementById('desc').focus();
+  renderTabelaPedido();
+}
+
+function editItem(index) {
+  const it = currentPedidoItems[index];
+  document.getElementById('desc').value = it.desc;
+  document.getElementById('qtd').value = it.qtd;
+  document.getElementById('unid').value = it.unid;
+  document.getElementById('obs').value = it.obs || '';
+  editIndex = index;
+  document.getElementById('addBtn').textContent = '✓ Salvar alteração do item';
+  document.getElementById('formLabel').textContent = 'Editando item ' + (index + 1);
+  document.getElementById('desc').focus();
+}
+
+function removeItem(index) {
+  currentPedidoItems.splice(index, 1);
+  if (editIndex === index) {
+    editIndex = null;
+    document.getElementById('addBtn').textContent = '+ Adicionar Item ao Pedido';
+    document.getElementById('formLabel').textContent = 'Adicionar Item Solicitado';
+  }
+  renderTabelaPedido();
+}
+
+function renderTabelaPedido() {
+  const tbody = document.getElementById('tbody-pedido');
+  const count = document.getElementById('count-items');
+
+  if (currentPedidoItems.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhum item adicionado a esta requisição.</td></tr>';
+    count.textContent = '0 itens';
+    return;
+  }
+
+  tbody.innerHTML = currentPedidoItems.map((it, i) => `
+    <tr>
+      <td style="font-family:'IBM Plex Mono'; font-size:11px;">${i + 1}</td>
+      <td style="font-weight:600;">${escapeHtml(it.desc)}</td>
+      <td class="qty-cell" style="color:var(--stamp);">${it.qtd}</td>
+      <td class="qty-cell">${escapeHtml(it.unid)}</td>
+      <td style="color:#555;">${escapeHtml(it.obs) || '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="edit-btn" onclick="editItem(${i})" title="Editar">✎</button>
+        <button class="del-btn" onclick="removeItem(${i})" title="Remover">×</button>
+      </td>
+    </tr>
+  `).join('');
+
+  count.textContent = `${currentPedidoItems.length} ${currentPedidoItems.length === 1 ? 'item' : 'itens'}`;
+}
+
+function salvarPedidoNoBanco() {
+  const nome = document.getElementById('ped-nome').value.trim();
+  const codigo = document.getElementById('ped-codigo').value.trim() || 'PED-' + Math.floor(1000 + Math.random() * 9000);
+  const data = document.getElementById('ped-data').value;
+
+  if (!nome) {
+    alert('Informe ao menos o Nome do Pedido / Destino.');
+    return;
+  }
+  if (currentPedidoItems.length === 0) {
+    alert('Adicione pelo menos 1 item ao pedido antes de salvar.');
+    return;
+  }
+
+  dbPedidos.push({
+    id: 'PED_' + Date.now(),
+    nome, codigo, data,
+    items: currentPedidoItems.map(it => ({ ...it })),
+    statusConferencia: 'Pendente',
+    dataCriacao: new Date().toISOString()
+  });
+  salvarBanco();
+
+  alert(`Pedido "${nome}" (${codigo}) salvo. Use "Exportar banco.json" na aba 2 para versionar no GitHub.`);
+
+  currentPedidoItems = [];
+  document.getElementById('ped-nome').value = '';
+  document.getElementById('ped-codigo').value = '';
+  renderTabelaPedido();
+}
+
+// ---------------------------------------------------------------------
+// ABA 2 — BANCO DE PEDIDOS
+// ---------------------------------------------------------------------
+function renderBancoPedidos() {
+  const tbody = document.getElementById('tbody-banco');
+  if (dbPedidos.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum pedido no banco. Crie um na aba 1 ou importe um banco.json.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = dbPedidos.map((ped, idx) => `
+    <tr>
+      <td style="font-family:'IBM Plex Mono'; font-size:12px;"><strong>${escapeHtml(ped.codigo)}</strong><br><span style="color:#777;">${escapeHtml(ped.data || '')}</span></td>
+      <td style="font-weight:600;">${escapeHtml(ped.nome)}</td>
+      <td class="qty-cell">${ped.items ? ped.items.length : 0} itens</td>
+      <td><span class="badge ${ped.statusConferencia === 'Conferido' ? 'badge-ok' : (ped.statusConferencia === 'Com Faltas' ? 'badge-danger' : 'badge-warn')}">${escapeHtml(ped.statusConferencia || 'Pendente')}</span></td>
+      <td style="white-space:nowrap;">
+        <button class="secondary-btn" style="padding:4px 8px; font-size:11px;" onclick="irParaConferencia('${ped.id}')">🔍 Conferir NF</button>
+        <button class="del-btn" onclick="excluirPedidoBanco(${idx})" title="Excluir">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function excluirPedidoBanco(idx) {
+  if (confirm('Excluir este pedido do banco local? (o arquivo banco.json no GitHub não é alterado)')) {
+    dbPedidos.splice(idx, 1);
+    salvarBanco();
+    renderBancoPedidos();
+  }
+}
+
+// ---------------------------------------------------------------------
+// ABA 3 — CONFERÊNCIA
+// ---------------------------------------------------------------------
+function atualizarSelectPedidosConferencia() {
+  const select = document.getElementById('select-pedido-conferencia');
+  const atual = select.value;
+  select.innerHTML = '<option value="">-- Escolha um pedido salvo --</option>' +
+    dbPedidos.map(p => `<option value="${p.id}">${escapeHtml(p.codigo)} - ${escapeHtml(p.nome)} (${p.items.length} itens)</option>`).join('');
+  if (atual) select.value = atual;
+}
+
+function irParaConferencia(pedidoId) {
+  switchTab('tab-nfe');
+  document.getElementById('select-pedido-conferencia').value = pedidoId;
+  carregarPedidoParaConferencia();
+}
+
+function carregarPedidoParaConferencia() {
+  const pedId = document.getElementById('select-pedido-conferencia').value;
+  const area = document.getElementById('area-conferencia');
+
+  if (!pedId) {
+    area.style.display = 'none';
+    activePedidoConferencia = null;
+    return;
+  }
+
+  activePedidoConferencia = dbPedidos.find(p => p.id === pedId);
+  if (!activePedidoConferencia) return;
+
+  area.style.display = 'block';
+  nfItens = [];
+  ajustesManuais = {};
+  document.getElementById('btn-relatorio-pdf').disabled = true;
+  renderItensNF();
+  atualizarComparativo();
+}
+
+// ---------------------------------------------------------------------
+// LEITURA DO PDF DA NF-e (PDF.js) — extração por regra fixa
+// ---------------------------------------------------------------------
+async function processarPDFNotaFiscal(file) {
+  if (!file) return;
+  if (!activePedidoConferencia) {
+    alert('Selecione primeiro o pedido que será comparado.');
+    return;
+  }
+
+  const zona = document.getElementById('drop-zone');
+  const textoOriginal = zona.innerHTML;
+  zona.innerHTML = '<div class="upload-icon">⏳</div><div style="font-weight:600;">Lendo o PDF...</div>';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      fullText += textContent.items.map(it => it.str).join(' ') + ' ';
     }
 
-    function renderizar() {
-      const termo = busca.value.trim().toLowerCase();
-      const categoria = filtroCategoria.value;
+    fullText = fullText.replace(/\s+/g, ' ').trim();
+    document.getElementById('nome-arquivo-nf').textContent = file.name;
 
-      const lista = produtos.filter(p => {
-        const combinaTermo = p.nome.toLowerCase().includes(termo);
-        const combinaCategoria = !categoria || p.categoria === categoria;
-        return combinaTermo && combinaCategoria;
-      });
+    const itens = extrairItensDaNF(fullText);
 
-      container.innerHTML = '';
-      lista.forEach(p => container.appendChild(montarCard(p)));
+    if (itens.length === 0) {
+      alert('O PDF foi lido, mas o quadro de itens não foi reconhecido automaticamente (PDF pode ser digitalizado/imagem). Lance as quantidades manualmente na tabela abaixo.');
+    }
 
-      if (lista.length === 0) {
-        aviso.className = '';
-        aviso.textContent = 'Nenhum produto encontrado com esses filtros.';
-      } else {
-        aviso.className = '';
-        aviso.textContent = `${lista.length} produto(s) no catálogo.`;
+    nfItens = itens;
+    vincularItens();
+    renderItensNF();
+    atualizarComparativo();
+
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao ler o PDF da NF: ' + err.message + '. Você pode lançar as quantidades manualmente.');
+  } finally {
+    zona.innerHTML = textoOriginal;
+    religarDropZone();
+  }
+}
+
+// Quadro "DADOS DOS PRODUTOS/SERVIÇOS" do DANFE:
+// CÓDIGO | DESCRIÇÃO | NCM(8) | CST(2-4) | CFOP(4) | UNID | QUANT | V.UNIT | V.TOTAL ...
+const RE_ITEM_DANFE = /(\d{8})\s+(\d{1,4})\s+(\d{4})\s+([A-ZÇÃa-zçã]{1,6})\s+([\d.]*\d(?:,\d+)?)\s+([\d.]*\d,\d{2,})/g;
+
+const RE_CABECALHO = /(?:C[ÓO]DIGO|DESCRI[ÇC][ÃA]O(?:\s+DO)?(?:\s+PRODUTO)?(?:\s*\/\s*SERVI[ÇC]OS?)?|NCM\s*\/?\s*SH|CFOP|UNID(?:ADE)?|QUANT(?:IDADE)?|V(?:ALOR)?\.?\s*(?:UNIT|TOTAL|ICMS|IPI)|BC\s*ICMS|AL[ÍI]Q)/gi;
+
+function numeroBR(txt) {
+  if (!txt) return 0;
+  return parseFloat(String(txt).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function extrairItensDaNF(texto) {
+  const achados = [];
+  let m, fimAnterior = 0;
+
+  // corta o cabeçalho para não pegar lixo antes do quadro de produtos
+  const inicioQuadro = texto.search(/DADOS DOS PRODUTOS|C[ÓO]DIGO\s+DESCRI[ÇC][ÃA]O/i);
+  const base = inicioQuadro > -1 ? texto.slice(inicioQuadro) : texto;
+
+  RE_ITEM_DANFE.lastIndex = 0;
+  while ((m = RE_ITEM_DANFE.exec(base)) !== null) {
+    // a descrição é o texto entre o fim do item anterior e o NCM deste item
+    let bruto = base.slice(fimAnterior, m.index).trim();
+    fimAnterior = RE_ITEM_DANFE.lastIndex;
+
+    // no 1º item, descarta o cabeçalho do quadro ("CÓDIGO DESCRIÇÃO NCM CST CFOP UNID QUANT ...")
+    if (achados.length === 0) {
+      const cabs = [...bruto.matchAll(RE_CABECALHO)];
+      if (cabs.length) {
+        const ult = cabs[cabs.length - 1];
+        bruto = bruto.slice(ult.index + ult[0].length).trim();
       }
     }
 
-    function preencherCategorias() {
-      const categorias = [...new Set(produtos.map(p => p.categoria))].sort();
-      categorias.forEach(c => {
-        const opcao = document.createElement('option');
-        opcao.value = c;
-        opcao.textContent = c;
-        filtroCategoria.appendChild(opcao);
-      });
+    // remove valores/percentuais residuais do item anterior e o código do produto
+    bruto = bruto.replace(/^[\d.,%\s]+/, '').trim();
+    const partes = bruto.split(' ');
+    if (partes.length > 1 && /^[A-Z0-9\-._/]{2,15}$/i.test(partes[0]) && /\d/.test(partes[0])) {
+      var codigo = partes.shift();
+    }
+    const desc = partes.join(' ').replace(/\s{2,}/g, ' ').trim();
+
+    if (!desc || desc.length < 3 || desc.length > 200) continue;
+
+    achados.push({
+      idNF: 'NF_' + achados.length + '_' + Math.random().toString(36).slice(2, 7),
+      codigo: typeof codigo === 'string' ? codigo : '',
+      desc: desc,
+      unid: m[4].toLowerCase(),
+      qtd: numeroBR(m[5]),
+      vinculo: null,
+      score: 0
+    });
+    codigo = undefined;
+  }
+  return achados;
+}
+
+// ---------------------------------------------------------------------
+// VÍNCULO PEDIDO x NF — regra fixa de similaridade de texto
+// ---------------------------------------------------------------------
+const STOPWORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'para', 'com', 'em', 'no', 'na', 'e', 'ou',
+  'un', 'und', 'unid', 'pc', 'pcs', 'cx', 'kit', 'rolo', 'metro', 'metros', 'marca', 'ref', 'tipo', 'cor', 'mod']);
+
+const LIMIAR_VINCULO = 0.45;
+
+function normalizar(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9.,/]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function tokenizar(s) {
+  return normalizar(s)
+    .split(' ')
+    .map(t => t.replace(/^[.,/]+|[.,/]+$/g, ''))
+    .filter(t => t.length > 1 && !STOPWORDS.has(t));
+}
+
+// tokens com número (2mp, 2.8mm, 1080p, dvr16) pesam o dobro: são o que identifica o modelo
+function similaridade(tokensPedido, tokensNF) {
+  if (!tokensPedido.length || !tokensNF.length) return 0;
+  const setNF = new Set(tokensNF);
+  let peso = 0, acertos = 0;
+
+  tokensPedido.forEach(t => {
+    const w = /\d/.test(t) ? 2 : 1;
+    peso += w;
+    if (setNF.has(t)) {
+      acertos += w;
+    } else if (tokensNF.some(x => x.length > 3 && (x.startsWith(t) || t.startsWith(x)))) {
+      acertos += w * 0.6;
+    }
+  });
+
+  return peso ? acertos / peso : 0;
+}
+
+function vincularItens() {
+  if (!activePedidoConferencia) return;
+
+  const pedidoTokens = activePedidoConferencia.items.map(it => ({
+    id: it.id,
+    tokens: tokenizar(it.desc + ' ' + (it.obs || ''))
+  }));
+
+  const pares = [];
+  nfItens.forEach(nf => {
+    const tNF = tokenizar(nf.desc);
+    pedidoTokens.forEach(p => {
+      const s = similaridade(p.tokens, tNF);
+      if (s >= LIMIAR_VINCULO) pares.push({ idNF: nf.idNF, idPed: p.id, score: s });
+    });
+  });
+
+  // maior similaridade primeiro; cada item de NF vincula a um item do pedido
+  pares.sort((a, b) => b.score - a.score);
+  const pedUsado = new Set();
+  const nfUsado = new Set();
+
+  pares.forEach(par => {
+    if (nfUsado.has(par.idNF) || pedUsado.has(par.idPed)) return;
+    const nf = nfItens.find(x => x.idNF === par.idNF);
+    nf.vinculo = par.idPed;
+    nf.score = par.score;
+    nfUsado.add(par.idNF);
+    pedUsado.add(par.idPed);
+  });
+}
+
+function alterarVinculo(idNF, idPed) {
+  const nf = nfItens.find(x => x.idNF === idNF);
+  if (!nf) return;
+  nf.vinculo = idPed || null;
+  nf.score = idPed ? 1 : 0; // vínculo manual = confirmado
+  renderItensNF();
+  atualizarComparativo();
+}
+
+function removerItemNF(idNF) {
+  nfItens = nfItens.filter(x => x.idNF !== idNF);
+  renderItensNF();
+  atualizarComparativo();
+}
+
+function adicionarItemNFManual() {
+  const desc = document.getElementById('nf-desc-manual').value.trim();
+  const qtd = parseFloat(document.getElementById('nf-qtd-manual').value);
+  if (!desc || isNaN(qtd) || qtd <= 0) {
+    alert('Informe a descrição e a quantidade que consta na NF.');
+    return;
+  }
+  nfItens.push({
+    idNF: 'NF_M_' + Date.now(),
+    codigo: '',
+    desc, unid: 'un', qtd,
+    vinculo: null, score: 0
+  });
+  vincularItens();
+  document.getElementById('nf-desc-manual').value = '';
+  document.getElementById('nf-qtd-manual').value = '';
+  renderItensNF();
+  atualizarComparativo();
+}
+
+function renderItensNF() {
+  const tbody = document.getElementById('tbody-itens-nf');
+  const contador = document.getElementById('count-itens-nf');
+  if (!tbody) return;
+
+  if (nfItens.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum item lido da NF ainda.</td></tr>';
+    if (contador) contador.textContent = '0 itens lidos da NF';
+    return;
+  }
+
+  const opcoes = activePedidoConferencia
+    ? activePedidoConferencia.items.map(it => ({ id: it.id, desc: it.desc })) : [];
+
+  tbody.innerHTML = nfItens.map(nf => {
+    const select = `<select onchange="alterarVinculo('${nf.idNF}', this.value)" style="font-size:12px; padding:5px;">
+        <option value="" ${!nf.vinculo ? 'selected' : ''}>— não solicitado —</option>
+        ${opcoes.map(o => `<option value="${o.id}" ${nf.vinculo === o.id ? 'selected' : ''}>${escapeHtml(o.desc.slice(0, 60))}</option>`).join('')}
+      </select>`;
+
+    const conf = nf.vinculo
+      ? `<span class="badge ${nf.score >= 0.75 ? 'badge-ok' : 'badge-warn'}">${Math.round(nf.score * 100)}%</span>`
+      : '<span class="badge badge-warn">extra</span>';
+
+    return `
+      <tr>
+        <td style="font-size:12.5px;">${escapeHtml(nf.desc)}${nf.codigo ? `<br><small style="color:#777;">cód NF: ${escapeHtml(nf.codigo)}</small>` : ''}</td>
+        <td class="qty-cell">${nf.qtd} ${escapeHtml(nf.unid)}</td>
+        <td>${select}</td>
+        <td>${conf}</td>
+        <td><button class="del-btn" onclick="removerItemNF('${nf.idNF}')" title="Descartar linha">×</button></td>
+      </tr>`;
+  }).join('');
+
+  if (contador) contador.textContent = `${nfItens.length} item(ns) lido(s) da NF`;
+}
+
+// ---------------------------------------------------------------------
+// COMPARATIVO
+// ---------------------------------------------------------------------
+function qtdEntregue(reqItemId) {
+  if (Object.prototype.hasOwnProperty.call(ajustesManuais, reqItemId)) {
+    return ajustesManuais[reqItemId];
+  }
+  return nfItens
+    .filter(n => n.vinculo === reqItemId)
+    .reduce((soma, n) => soma + (parseFloat(n.qtd) || 0), 0);
+}
+
+function alterarQtdEntregueNF(reqItemId, val) {
+  ajustesManuais[reqItemId] = parseFloat(val) || 0;
+  atualizarComparativo();
+}
+
+function removerDoComparativo(reqItemId) {
+  ajustesManuais[reqItemId] = 0;
+  nfItens.forEach(n => { if (n.vinculo === reqItemId) { n.vinculo = null; n.score = 0; } });
+  renderItensNF();
+  atualizarComparativo();
+}
+
+function atualizarComparativo() {
+  if (!activePedidoConferencia) return;
+
+  const tbody = document.getElementById('tbody-comparativo');
+  let countCompletos = 0, countFaltantes = 0;
+  const countExtras = nfItens.filter(n => !n.vinculo).length;
+
+  const rowsHtml = activePedidoConferencia.items.map(reqItem => {
+    const qtdNF = qtdEntregue(reqItem.id);
+    const qtdFalta = Math.max(0, reqItem.qtd - qtdNF);
+    const manual = Object.prototype.hasOwnProperty.call(ajustesManuais, reqItem.id);
+
+    let badgeStatus;
+    if (qtdNF >= reqItem.qtd) {
+      badgeStatus = '<span class="badge badge-ok">✓ Completo</span>';
+      countCompletos++;
+    } else if (qtdNF > 0) {
+      badgeStatus = '<span class="badge badge-warn">⚠ Parcial</span>';
+      countFaltantes++;
+    } else {
+      badgeStatus = '<span class="badge badge-danger">🚨 Faltante</span>';
+      countFaltantes++;
     }
 
-    async function carregarBanco() {
-      try {
-        // Caminho relativo: banco.json precisa estar na mesma pasta deste HTML
-        const resposta = await fetch('./banco.json', { cache: 'no-store' });
+    return `
+      <tr>
+        <td style="font-weight:600;">${escapeHtml(reqItem.desc)}<br><small style="color:#777;">Obs: ${escapeHtml(reqItem.obs || '—')}</small></td>
+        <td class="qty-cell">${reqItem.qtd} ${escapeHtml(reqItem.unid)}</td>
+        <td class="qty-cell">
+          <input type="number" min="0" step="0.5" value="${qtdNF}"
+            style="width:70px; padding:4px; font-weight:600; text-align:center; ${manual ? 'border-color:var(--warning);' : ''}"
+            onchange="alterarQtdEntregueNF('${reqItem.id}', this.value)">
+          ${manual ? '<br><small style="color:var(--warning); font-size:10px;">manual</small>' : ''}
+        </td>
+        <td class="qty-cell" style="color:${qtdFalta > 0 ? 'var(--stamp)' : 'var(--check)'};">${qtdFalta}</td>
+        <td>${badgeStatus}</td>
+        <td><button class="del-btn" onclick="removerDoComparativo('${reqItem.id}')" title="Zerar">×</button></td>
+      </tr>`;
+  }).join('');
 
-        if (!resposta.ok) {
-          throw new Error(`HTTP ${resposta.status}`);
-        }
+  tbody.innerHTML = rowsHtml || '<tr class="empty-row"><td colspan="6">Nenhum item para conferir.</td></tr>';
 
-        const dados = await resposta.json();
+  document.getElementById('stat-solicitados').textContent = activePedidoConferencia.items.length;
+  document.getElementById('stat-completos').textContent = countCompletos;
+  document.getElementById('stat-faltantes').textContent = countFaltantes;
+  document.getElementById('stat-extras').textContent = countExtras;
 
-        if (!dados || !Array.isArray(dados.produtos)) {
-          throw new Error('O JSON precisa ter uma lista chamada "produtos".');
-        }
+  activePedidoConferencia.statusConferencia = countFaltantes > 0 ? 'Com Faltas' : 'Conferido';
+  salvarBanco();
 
-        produtos = dados.produtos;
-        preencherCategorias();
-        renderizar();
+  document.getElementById('btn-relatorio-pdf').disabled = false;
+}
 
-      } catch (erro) {
-        console.error('Erro na leitura do banco JSON:', erro);
-        aviso.className = 'erro';
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
 
-        if (location.protocol === 'file:') {
-          aviso.innerHTML = `
-            <strong>O navegador bloqueou a leitura do JSON.</strong><br>
-            Isso acontece quando a página é aberta com duplo clique (<code>file://</code>).
-            Publique no GitHub Pages ou rode um servidor local:
-            <code>python -m http.server</code> e acesse <code>http://localhost:8000</code>.
-          `;
-        } else {
-          aviso.innerHTML = `
-            <strong>Não foi possível carregar o banco.json.</strong><br>
-            Confira se o arquivo está na mesma pasta do HTML e se o nome está exatamente
-            <code>banco.json</code>. Detalhe técnico: ${escapar(erro.message)}
-          `;
-        }
+// ---------------------------------------------------------------------
+// PDFs
+// ---------------------------------------------------------------------
+function gerarPDFPedidoOriginal() {
+  if (currentPedidoItems.length === 0) {
+    alert('Não há itens na lista para gerar o PDF.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const hoje = new Date().toLocaleDateString('pt-BR');
+
+  const nomePed = document.getElementById('ped-nome').value.toUpperCase() || 'REQUISIÇÃO DE MATERIAL';
+  const codPed = document.getElementById('ped-codigo').value || 'PED-' + Date.now();
+
+  const cInk = [15, 15, 15];
+  const cStamp = [214, 0, 0];
+  const cLine = [210, 210, 210];
+
+  doc.setFillColor(...cInk);
+  doc.rect(0, 0, 210, 8, 'F');
+
+  doc.setFillColor(...cStamp);
+  doc.circle(188, 16, 1.2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...cStamp);
+  doc.text('REC', 191, 17);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(...cInk);
+  doc.text('LISTA DE MATERIAL SOLICITADO', 14, 22);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...cStamp);
+  doc.text(`${nomePed} · CÓD: ${codPed}`, 14, 28);
+
+  doc.setDrawColor(...cStamp);
+  doc.setLineWidth(1);
+  doc.line(14, 32, 196, 32);
+
+  const rows = currentPedidoItems.map(it => ['', it.desc.toUpperCase(), String(it.qtd), it.unid.toLowerCase(), it.obs || '—']);
+
+  doc.autoTable({
+    startY: 36,
+    margin: { left: 14, right: 14 },
+    head: [['OK', 'DESCRIÇÃO DO MATERIAL', 'QTD', 'UNID', 'OBSERVAÇÃO']],
+    body: rows,
+    theme: 'striped',
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5, textColor: cInk, lineColor: cLine, lineWidth: 0.1 },
+    headStyles: { fillColor: cInk, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
+    alternateRowStyles: { fillColor: [250, 250, 250] },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 18, halign: 'center', fontStyle: 'bold', textColor: cStamp },
+      3: { cellWidth: 18, halign: 'center' },
+      4: { cellWidth: 55 }
+    },
+    didDrawCell: function (data) {
+      if (data.column.index === 0 && data.section === 'body') {
+        const boxSize = 4;
+        const x = data.cell.x + (data.cell.width - boxSize) / 2;
+        const y = data.cell.y + (data.cell.height - boxSize) / 2;
+        doc.setDrawColor(...cInk);
+        doc.setLineWidth(0.4);
+        doc.rect(x, y, boxSize, boxSize);
       }
     }
+  });
 
-    busca.addEventListener('input', renderizar);
-    filtroCategoria.addEventListener('change', renderizar);
+  const finalY = doc.lastAutoTable.finalY || 45;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...cInk);
+  doc.text(`Documento de Requisição Gerado em: ${hoje}`, 14, finalY + 12);
 
-    carregarBanco();
-  </script>
+  doc.save(`pedido-${codPed.toLowerCase()}.pdf`);
+}
+
+function gerarRelatorioPDFDivergencia() {
+  if (!activePedidoConferencia) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const hoje = new Date().toLocaleDateString('pt-BR');
+
+  const cInk = [15, 15, 15];
+  const cStamp = [214, 0, 0];
+  const cGreen = [40, 167, 69];
+  const cLine = [210, 210, 210];
+
+  doc.setFillColor(...cStamp);
+  doc.rect(0, 0, 210, 10, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(...cInk);
+  doc.text('RELATORIO DE DIVERGENCIA DE MATERIAL (NF-e)', 14, 22);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...cStamp);
+  doc.text(`REQUISICAO: ${activePedidoConferencia.nome.toUpperCase()} (${activePedidoConferencia.codigo})`, 14, 28);
+
+  doc.setDrawColor(...cInk);
+  doc.setLineWidth(0.8);
+  doc.line(14, 32, 196, 32);
+
+  const faltantesList = [];
+  const completosList = [];
+
+  activePedidoConferencia.items.forEach(reqItem => {
+    const qtdNF = qtdEntregue(reqItem.id);
+    const qtdFalta = Math.max(0, reqItem.qtd - qtdNF);
+
+    if (qtdFalta > 0) {
+      faltantesList.push([
+        reqItem.desc.toUpperCase(),
+        String(reqItem.qtd),
+        String(qtdNF),
+        qtdFalta + ' ' + reqItem.unid,
+        qtdNF === 0 ? 'NAO ENTREGUE' : 'ENTREGA PARCIAL'
+      ]);
+    } else {
+      completosList.push([
+        reqItem.desc.toUpperCase(),
+        String(reqItem.qtd),
+        String(qtdNF),
+        'OK',
+        'ENTREGUE 100%'
+      ]);
+    }
+  });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...cStamp);
+  doc.text(`ITENS FALTANTES OU COM ENTREGA INCOMPLETA (${faltantesList.length})`, 14, 40);
+
+  if (faltantesList.length > 0) {
+    doc.autoTable({
+      startY: 44,
+      margin: { left: 14, right: 14 },
+      head: [['DESCRICAO DO MATERIAL', 'QTD PED.', 'QTD NF', 'FALTANDO', 'SITUACAO']],
+      body: faltantesList,
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 3, textColor: cInk },
+      headStyles: { fillColor: cStamp, textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 22, halign: 'center' },
+        2: { cellWidth: 22, halign: 'center' },
+        3: { cellWidth: 28, halign: 'center', fontStyle: 'bold', textColor: cStamp },
+        4: { cellWidth: 38, halign: 'center', fontStyle: 'bold' }
+      }
+    });
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...cGreen);
+    doc.text('Nenhum item faltante. A requisicao foi entregue conforme solicitado.', 14, 48);
+  }
+
+  let currentY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 58;
+
+  if (completosList.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...cGreen);
+    doc.text(`ITENS ENTREGUES INTEGRALMENTE (${completosList.length})`, 14, currentY);
+
+    doc.autoTable({
+      startY: currentY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['DESCRICAO DO MATERIAL', 'QTD PED.', 'QTD NF', 'STATUS', 'SITUACAO']],
+      body: completosList,
+      theme: 'striped',
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5, textColor: [60, 60, 60] },
+      headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 22, halign: 'center' },
+        2: { cellWidth: 22, halign: 'center' },
+        3: { cellWidth: 28, halign: 'center', fontStyle: 'bold', textColor: cGreen },
+        4: { cellWidth: 38, halign: 'center' }
+      }
+    });
+    currentY = doc.lastAutoTable.finalY + 10;
+  }
+
+  const extras = nfItens.filter(n => !n.vinculo);
+  if (extras.length > 0) {
+    if (currentY > 240) { doc.addPage(); currentY = 25; }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(230, 126, 34);
+    doc.text(`ITENS NA NF QUE NAO CONSTAM NO PEDIDO (${extras.length})`, 14, currentY);
+
+    doc.autoTable({
+      startY: currentY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['DESCRICAO NA NOTA FISCAL', 'QTD NF']],
+      body: extras.map(e => [e.desc.toUpperCase(), e.qtd + ' ' + e.unid]),
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [230, 126, 34], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: { 1: { cellWidth: 30, halign: 'center' } }
+    });
+  }
+
+  let finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : currentY) + 15;
+  if (finalY > 250) { doc.addPage(); finalY = 30; }
+
+  doc.setDrawColor(...cLine);
+  doc.line(14, finalY + 15, 90, finalY + 15);
+  doc.line(110, finalY + 15, 196, finalY + 15);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...cInk);
+  doc.text('Responsavel pela Conferencia / Recebimento', 14, finalY + 20);
+  doc.text('Visto do Fornecedor / Almoxarifado', 110, finalY + 20);
+
+  doc.setFontSize(7);
+  doc.setTextColor(120, 120, 120);
+  doc.text(`Relatorio emitido em ${hoje} - Modulo de Suprimentos CFTV`, 14, finalY + 30);
+
+  doc.save(`relatorio-faltantes-${activePedidoConferencia.codigo.toLowerCase()}.pdf`);
+}
+
+// ---------------------------------------------------------------------
+// DRAG & DROP
+// ---------------------------------------------------------------------
+function religarDropZone() {
+  const dropZone = document.getElementById('drop-zone');
+  if (!dropZone) return;
+
+  dropZone.onclick = () => document.getElementById('nfe-file-input').click();
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+    dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+  ['dragenter', 'dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, () => dropZone.classList.add('dragover'), false);
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    dropZone.addEventListener(ev, () => dropZone.classList.remove('dragover'), false);
+  });
+  dropZone.addEventListener('drop', e => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) processarPDFNotaFiscal(files[0]);
+  });
+}
+
+religarDropZone();
+renderTabelaPedido();
+carregarArquivoBanco(false);
+</script>
+
 </body>
 </html>
