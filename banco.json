@@ -1,68 +1,32 @@
 {
-  "produtos": [
+  "pedidos": [
     {
-      "id": 1,
-      "nome": "Fone Bluetooth Aura",
-      "categoria": "Áudio",
-      "preco": 249.9,
-      "estoque": 14,
-      "imagem": "https://placehold.co/600x400/2c3e50/ffffff?text=Fone+Aura"
+      "id": "PED_2026_001",
+      "codigo": "PED-2026-001",
+      "nome": "MATERIAL GPA PARNAMIRIM - CFTV",
+      "data": "2026-09-10",
+      "statusConferencia": "Pendente",
+      "dataCriacao": "2026-09-10T09:00:00.000Z",
+      "items": [
+        { "id": "IT_001", "desc": "Câmera Bullet 2MP Hikvision", "qtd": 8, "unid": "un", "obs": "Lente 2.8mm, corpo metálico branco" },
+        { "id": "IT_002", "desc": "DVR 16 canais 1080p Intelbras", "qtd": 1, "unid": "un", "obs": "Com HD 2TB instalado" },
+        { "id": "IT_003", "desc": "Cabo coaxial RG59 bipolar rolo 100m", "qtd": 3, "unid": "rolo", "obs": "Bobina fechada" },
+        { "id": "IT_004", "desc": "Fonte colmeia 12V 5A", "qtd": 2, "unid": "un", "obs": "Com borne de saída" },
+        { "id": "IT_005", "desc": "Conector BNC mola", "qtd": 20, "unid": "un", "obs": "" }
+      ]
     },
     {
-      "id": 2,
-      "nome": "Teclado Mecânico K70",
-      "categoria": "Periféricos",
-      "preco": 389.0,
-      "estoque": 7,
-      "imagem": "https://placehold.co/600x400/34495e/ffffff?text=Teclado+K70"
-    },
-    {
-      "id": 3,
-      "nome": "Mouse Gamer Titan",
-      "categoria": "Periféricos",
-      "preco": 159.5,
-      "estoque": 23,
-      "imagem": "https://placehold.co/600x400/16a085/ffffff?text=Mouse+Titan"
-    },
-    {
-      "id": 4,
-      "nome": "Monitor 27\" QHD",
-      "categoria": "Monitores",
-      "preco": 1799.99,
-      "estoque": 4,
-      "imagem": "https://placehold.co/600x400/8e44ad/ffffff?text=Monitor+27"
-    },
-    {
-      "id": 5,
-      "nome": "Webcam Full HD",
-      "categoria": "Vídeo",
-      "preco": 219.0,
-      "estoque": 0,
-      "imagem": "https://placehold.co/600x400/c0392b/ffffff?text=Webcam+HD"
-    },
-    {
-      "id": 6,
-      "nome": "SSD NVMe 1TB",
-      "categoria": "Armazenamento",
-      "preco": 479.9,
-      "estoque": 31,
-      "imagem": "https://placehold.co/600x400/2980b9/ffffff?text=SSD+1TB"
-    },
-    {
-      "id": 7,
-      "nome": "Cadeira Ergonômica Flex",
-      "categoria": "Móveis",
-      "preco": 1249.0,
-      "estoque": 9,
-      "imagem": "https://placehold.co/600x400/d35400/ffffff?text=Cadeira+Flex"
-    },
-    {
-      "id": 8,
-      "nome": "Hub USB-C 7 em 1",
-      "categoria": "Acessórios",
-      "preco": 189.9,
-      "estoque": 18,
-      "imagem": "https://placehold.co/600x400/27ae60/ffffff?text=Hub+USB-C"
+      "id": "PED_2026_002",
+      "codigo": "PED-2026-002",
+      "nome": "MANUTENCAO PORTARIA - SEGURANCA",
+      "data": "2026-09-14",
+      "statusConferencia": "Pendente",
+      "dataCriacao": "2026-09-14T13:30:00.000Z",
+      "items": [
+        { "id": "IT_101", "desc": "Fechadura eletromagnética 150kgf", "qtd": 2, "unid": "un", "obs": "Com suporte L e Z" },
+        { "id": "IT_102", "desc": "Botoeira fim de curso metálica", "qtd": 2, "unid": "un", "obs": "" },
+        { "id": "IT_103", "desc": "Cabo manga 4 vias 0.5mm", "qtd": 50, "unid": "m", "obs": "Blindado" }
+      ]
     }
   ]
 }
